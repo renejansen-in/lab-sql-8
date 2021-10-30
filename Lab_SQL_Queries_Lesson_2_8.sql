@@ -64,12 +64,31 @@ WHERE f.title LIKE "Academy Dinosaur" AND store_id = 1    -- AND r.return_date i
 -- so at this moment (but also in 2005) inventory items 1-4 are available
 
 -- 7. Get all pairs of actors that worked together.
--- info is available in tables:
-
+-- info is available in tables: film_actor (actor_id<> and film_id=)
+SELECT fa1.film_id, fa1.actor_id AS pers1, fa2.actor_id AS pers2
+FROM sakila.film_actor fa1
+JOIN sakila.film_actor fa2 
+ON (fa1.film_id = fa2.film_id)
+AND (fa1.actor_id <> fa2.actor_id)
+ORDER BY fa1.film_id;
 
 -- 8. Get all pairs of customers that have rented the same film more than 3 times.
--- info is available in tables:
+-- info is available in tables: rental, inventory | selfjoin film_id<> customer_id=
 
+-- self join on a subquery
+-- first create a working subquery creating the columns I need from rental and inventory
+SELECT film_id, customer_id FROM sakila.rental r1 JOIN sakila.inventory i1 ON r1.inventory_id = i1.inventory_id;
+-- use this as subquery again against rental
+WITH subquery AS(
+    SELECT film_id, customer_id FROM sakila.rental r1 JOIN sakila.inventory i1 ON r1.inventory_id = i1.inventory_id
+) 
+SELECT q1.film_id, q1.customer_id AS cust1, q2.customer_id AS cust2
+FROM subquery q1
+JOIN subquery q2
+ON (q1.film_id = q2.film_id)
+AND (q1.customer_id <> q2.customer_id)
+;
+-- up to here it is still correct: 
 
 -- 9. For each film, list actor that has acted in more films.
 -- info is available in tables: actor, film_actor, film
